@@ -2,7 +2,7 @@
 
 Jean Forteroche est un auteur et écrivain qui travail actuellement sur son prochain roman, "Billet simple pour l'Alaska". Il souhaite innover et le publier par épisode en ligne sur son propre site.
 
-Pour ce dernier, je développe une application de blog simple en PHP et avec une base de données MySQL. Elle fournira une interface frontend  et une interface backend. On doit y retrouvera tous les éléments d'un CRUD :
+Pour ce dernier, je développe une application de blog simple en PHP et avec une base de données MySQL. Elle fournira une interface frontend  et une interface backend. On y retrouvera tous les éléments d'un CRUD :
 
 Create : création de billets
 Read : lecture de billets
