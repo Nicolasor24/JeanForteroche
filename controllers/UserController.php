@@ -7,7 +7,7 @@ use models\UserManager;
 
 class UserController {
 
-    // Enregistrer un utilisateur
+    // Enregistrer  utilisateur
     public function register($pseudo, $password, $email)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST')
@@ -15,14 +15,14 @@ class UserController {
             $newMessage = new Message();
             if (!empty($_POST['pseudo']) && !empty($_POST['password']) && !empty($_POST['password_confirm']) && !empty($_POST['email']))
             {
-                // Si la longueur du pseudo excède 255 caractères
+                
                 $pseudoLength = strlen($pseudo);
                 if ($pseudoLength <= 255)
                 {
-                    // Vérifie la syntaxe de l'adresse mail
+                    // Vérification de la syntaxe
                     if(filter_var($email, FILTER_VALIDATE_EMAIL))
                     {
-                        // Lettres minuscules/majuscules et chifres autorisés seulement
+                        // Lettres minuscules/majuscules et chiffres autorisés
                         if(preg_match('/^[a-zA-Z0-9]+$/', $pseudo))
                         {
                             $newUserManager = new UserManager();
@@ -75,11 +75,11 @@ class UserController {
                 $newMessage->setError("<p>Tous les champs doivent être rempli !</p>");
             }
         }
-        // Vue
+        // INCLUSION VUE
         require 'views/register.php';
     }
 
-    // Se connecter avec des identifiants en base
+    // Se connecter avec des identifiants 
     public function login($pseudo, $password)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST')
