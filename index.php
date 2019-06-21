@@ -1,83 +1,146 @@
-<?php 
+<?php
+
+namespace controllers;
+
 session_start();
-include('includes/config.php');
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Billet simple pour l'Alaska">
-  <meta name="author" content="Jean Forteroche">
-  <title>Jean Forteroche | Accueil</title>
-  <!-- Bootstrap css -->
-  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Les styles personnalisés -->
-  <link href="css/style.css" rel="stylesheet">
-</head>
-<body>
-  <!-- Navigation -->
-  <?php include('includes/header.php');?>
-  <!-- Contenu de la page -->
-  <div class="container">
-    <div class="row" style="margin-top: 4%">
-      <!-- Entrées colonnes du blog -->
-      <div class="col-md-8">
-  <!--Articles du blog-->
-  <?php 
-if (isset($_GET['pageno'])) {
-            $pageno = $_GET['pageno'];
-        } else {
-            $pageno = 1;
+
+// Autoloader des classe
+require 'vendor/autoload.php';
+
+// Si il y'a la présence d'un controller
+if (isset($_GET['controller'])) {
+    // Si il y'a la présence d'une action
+    if (isset($_GET['action'])) {
+        // UserController
+        if ($_GET['controller'] == 'UserController') {
+            // Inscription
+            if ($_GET['action'] == 'registerAction') {
+                // Conditions ternaires
+                $pseudo = isset($_POST['pseudo']) ? htmlspecialchars($_POST['pseudo']) : NULL;
+                $password_hash = isset($_POST['password']) ? password_hash($_POST['password'], PASSWORD_BCRYPT) : NULL;
+                $email = isset($_POST['email']) ? htmlspecialchars($_POST['email']) : NULL;
+                $newUserController = new UserController();
+                $newUserController->register($pseudo, $password_hash, $email);
+            }
+            // Connexion
+            elseif ($_GET['action'] == 'loginAction') {
+                // Conditions ternaires
+                $pseudo = isset($_POST['pseudo']) ? htmlspecialchars($_POST['pseudo']) : NULL;
+                $password = isset($_POST['password']) ? htmlspecialchars($_POST['password']) : NULL;
+                $newUserController = new UserController();
+                $newUserController->login($pseudo, $password);
+            }
+            // Déconnexion
+            elseif ($_GET['action'] == 'logoutAction') {
+                require 'views/logout.php';
+            }
+            // Si une autre action est tapée dans l'URL
+            else {
+                require 'views/error.php';
+            }
         }
-        $no_of_records_per_page = 8;
-        $offset = ($pageno-1) * $no_of_records_per_page;
+        // PostController
+        elseif ($_GET['controller'] == 'PostController') {
+            // Affiche la liste des billets en ligne
+            if ($_GET['action'] == 'indexAction') {
+                $newPostController = new PostController();
+                $newPostController->indexAction();
+            }
+            // Affiche le contenu d'un billet et ses commentaires
+            elseif ($_GET['action'] == 'showAction') {
+                if (isset($_GET['id']) && $_GET['id'] > 0) {
+                    $newPostController = new PostController();
+                    $newPostController->showAction($_GET['id']);
+                } else {
+                    // erreur 404
+                    require 'views/error.php';
+                }
+            }
+            // Publier un commentaire
+            elseif ($_GET['action'] == 'addCommentAction') {
+                if (isset($_GET['id']) && $_GET['id'] > 0) {
+                    // Conditions ternaires
+                    $author = isset($_POST['author']) ? htmlspecialchars($_POST['author']) : NULL;
+                    $content = isset($_POST['content']) ? htmlspecialchars($_POST['content']) : NULL;
+                    $newCommentController = new CommentController();
+                    $newCommentController->addCommentAction($_GET['id'], $author, $content);
+                } else {
+                    // erreur 404
+                    require 'views/error.php';
+                }
+            }
+            // Signaler un commentaire sous un billet
+            elseif ($_GET['action'] == 'alertCommentAction') {
+                if (isset($_GET['id']) && $_GET['id'] > 0 && isset($_GET['post_id']) && $_GET['post_id'] > 0) {
+                    $newCommentController = new CommentController();
+                    $newCommentController->alertCommentAction($_GET['id'], $_GET['post_id']);
+                }
+            }
+            // Obtenir les informations sur l'auteur
+            elseif ($_GET['action'] == 'about') {
+                require 'views/about.php';
+            }
+            // Si une autre action est tapée dans l'URL
+            else {
+                require 'views/error.php';
+            }
+        }
+        // Actions possibles depuis la page d'administration (connexion obligatoire)
+        elseif (isset($_SESSION) && !empty($_SESSION)) {
+            // AdminController
+            if ($_GET['controller'] == 'AdminController') {
+                // Affiche les billets en ligne et les commentaires signalés
+                if ($_GET['action'] == 'indexAction') {
+                    $newAdminController = new AdminController();
+                    $newAdminController->indexAction();
+                }
+                // Publier un nouveau billet
+                elseif ($_GET['action'] == 'postAction') {
+                    // Conditions ternaires
+                    $title = isset($_POST['title']) ? htmlspecialchars($_POST['title']) : NULL;
+                    $content = isset($_POST['content']) ? htmlspecialchars($_POST['content']) : NULL;
+                    $newAdminController = new AdminController();
+                    $newAdminController->postAction($title, $content);
+                }
+                // Modifier un billet
+                elseif ($_GET['action'] == 'editPostAction') {
+                    $newAdminController = new AdminController();
+                    $newAdminController->editPostAction($_GET['id']);
+                }
+                // Supprimer un billet
+                elseif ($_GET['action'] == 'deletePostAction') {
+                    $newAdminController = new AdminController();
+                    $newAdminController->deletePostAction($_GET['id']);
+                }
+                // Modifier un commentaire signalé
+                elseif ($_GET['action'] == 'editCommentAction') {
+                    $newAdminController = new AdminController();
+                    $newAdminController->editCommentAction($_GET['id']);
+                }
+                // Supprimer un commentaire signalé
+                elseif ($_GET['action'] == 'deleteCommentAction') {
+                    $newAdminController = new AdminController();
+                    $newAdminController->deleteCommentAction($_GET['id']);
+                }
+                // Si une autre action est tapée dans l'URL
+                else {
+                    require 'views/error.php';
+                }
+            }
+        }
+        // Si on tente de se connecter sans être identifié
+        else {
+            require 'views/error.php';
+        }
+    }
+    // Si on tente d'acéder à un autre controller
+    else {
+        require 'views/error.php';
+    }
+}
+else {
+    // Page d'accueil du site, affiche le dernier billet publié
+    $newPostController = new PostController();
+    $newPostController->showLastPostAction();
+}
 
-
-        $total_pages_sql = "SELECT COUNT(*) FROM tblposts";
-        $result = mysqli_query($con,$total_pages_sql);
-        $total_rows = mysqli_fetch_array($result)[0];
-        $total_pages = ceil($total_rows / $no_of_records_per_page);
-
-
-$query=mysqli_query($con,"select tblposts.id as pid,tblposts.PostTitle as posttitle,tblposts.PostImage,tblcategory.CategoryName as category,tblcategory.id as cid,tblsubcategory.Subcategory as subcategory,tblposts.PostDetails as postdetails,tblposts.PostingDate as postingdate,tblposts.PostUrl as url from tblposts left join tblcategory on tblcategory.id=tblposts.CategoryId left join  tblsubcategory on  tblsubcategory.SubCategoryId=tblposts.SubCategoryId where tblposts.Is_Active=1 order by tblposts.id desc  LIMIT $offset, $no_of_records_per_page");
-while ($row=mysqli_fetch_array($query)) {
-?>
-<div class="card mb-4">
-  <img class="card-img-top" src="admin/postimages/<?php echo htmlentities($row['PostImage']);?>" alt="<?php echo htmlentities($row['posttitle']);?>">
-  <div class="card-body">
-    <h2 class="card-title"><?php echo htmlentities($row['posttitle']);?></h2>
-    <p><b>Categorie : </b> <a href="category.php?catid=<?php echo htmlentities($row['cid'])?>"><?php echo htmlentities($row['category']);?></a> </p>
-    <a href="news-details.php?nid=<?php echo htmlentities($row['pid'])?>" class="btn btn-primary">Lire la suite &rarr;</a>
-  </div>
-  <div class="card-footer text-muted">
-       Posté le <?php echo htmlentities($row['postingdate']);?>
-  </div>
-  </div>
-<?php } ?>
-<!-- Pagination -->
-<ul class="pagination justify-content-center mb-4">
-  <li class="page-item"><a href="?pageno=1"  class="page-link">Prem</a></li>
-  <li class="<?php if($pageno <= 1){ echo 'disabled'; } ?> page-item">
-    <a href="<?php if($pageno <= 1){ echo '#'; } else { echo "?pageno=".($pageno - 1); } ?>" class="page-link">Prec</a>
-  </li>
-  <li class="<?php if($pageno >= $total_pages){ echo 'disabled'; } ?> page-item">
-    <a href="<?php if($pageno >= $total_pages){ echo '#'; } else { echo "?pageno=".($pageno + 1); } ?> " class="page-link">Suiv</a>
-  </li>
-  <li class="page-item"><a href="?pageno=<?php echo $total_pages; ?>" class="page-link">Dern</a></li>
-</ul>
-</div>
-<!-- Widgets de la barre latérale -->
-<?php include('includes/sidebar.php');?>
-</div>
-<!-- /.row -->
-</div>
-<!-- /.container -->
-<!-- Footer -->
-<?php include('includes/footer.php');?>
-<!-- Bootstrap core JavaScript -->
-<script src="vendor/jquery/jquery.min.js"></script>
-<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-</head>
-</body>
-</html>
